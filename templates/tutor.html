@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block title %}AI Tutor — TigBor{% endblock %}
+{% block content %}
+<section class="page-head"><div><div class="eyebrow">PDF-POWERED LEARNING</div><h1>AI Tutor</h1><p>Upload one PDF. Then ask, attempt, and understand.</p></div></section>
+<section class="tutor-layout">
+  <aside class="tutor-sidebar">
+    <div class="upload-card">
+      <h3>Study source</h3>
+      <p class="small">All tutor tools use the uploaded PDF as their source.</p>
+      <input id="pdfInput" type="file" accept="application/pdf,.pdf">
+      <button id="uploadPdf" class="btn btn-gold full">Upload PDF</button>
+      <div id="fileStatus" class="small">{{ active.filename if active else "No PDF uploaded." }}</div>
+    </div>
+    <div class="tool-list">
+      <button class="tool-btn" data-kind="notes"><span>01</span><b>Personalized notes</b><small>Generate revision notes</small></button>
+      <button class="tool-btn" data-kind="quiz"><span>02</span><b>Quiz generator</b><small>Create questions from the PDF</small></button>
+      <button class="tool-btn" data-kind="flashcards"><span>03</span><b>Flashcards</b><small>Turn the PDF into cards</small></button>
+    </div>
+  </aside>
+  <section class="chat-shell tutor-chat">
+    <div class="chat-messages" id="tutorMessages"><div class="message bot"><span>T</span><p>{% if active %}Your PDF is loaded. Ask me about it — I’ll guide you instead of immediately giving away the answer.{% else %}Upload a PDF to activate the tutor.{% endif %}</p></div></div>
+    <form class="chat-input" id="tutorForm"><input id="tutorInput" placeholder="Ask something about your PDF..." {% if not active %}disabled{% endif %}><button class="btn btn-gold" {% if not active %}disabled{% endif %}>Send</button></form>
+  </section>
+</section>
+<div class="modal hidden" id="generatorModal"><div class="modal-card"><button class="modal-close" id="closeModal">×</button><div id="generatorOutput"></div></div></div>
+{% endblock %}
+{% block scripts %}<script>
+let tutorHistory=[];
+const tm=document.getElementById("tutorMessages");
+const esc=s=>String(s).replace(/</g,"&lt;").replace(/\n/g,"<br>");
+function tutorMsg(who,text){const d=document.createElement("div");d.className="message "+who;d.innerHTML=`<span>${who==="bot"?"T":"You"}</span><p>${esc(text)}</p>`;tm.appendChild(d);tm.scrollTop=tm.scrollHeight;}
+document.getElementById("uploadPdf").onclick=async()=>{
+ const f=pdfInput.files[0]; if(!f)return fileStatus.textContent="Choose a PDF first.";
+ const fd=new FormData();fd.append("pdf",f);fileStatus.textContent="Uploading...";
+ const r=await fetch("/api/tutor/upload",{method:"POST",body:fd});const d=await r.json();
+ fileStatus.textContent=d.error||`Loaded: ${d.filename}`; if(!d.error) location.reload();
+};
+tutorForm?.addEventListener("submit",async e=>{
+ e.preventDefault();const message=tutorInput.value.trim();if(!message)return;tutorMsg("user",message);tutorInput.value="";
+ const r=await fetch("/api/tutor/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message,history:tutorHistory})});
+ const d=await r.json(); if(d.answer){tutorHistory.push({role:"user",content:message},{role:"assistant",content:d.answer});tutorMsg("bot",d.answer)}else tutorMsg("bot",d.error||"Something went wrong.");
+});
+document.querySelectorAll(".tool-btn").forEach(b=>b.onclick=async()=>{
+ const kind=b.dataset.kind; generatorModal.classList.remove("hidden");generatorOutput.innerHTML="<p>Generating from your PDF...</p>";
+ const r=await fetch("/api/tutor/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({kind,count:10})});
+ const d=await r.json(); if(d.error){generatorOutput.innerHTML=`<p>${esc(d.error)}</p>`;return;}
+ if(kind==="notes") generatorOutput.innerHTML=`<h2>Personalized notes</h2><div class="generated-text">${esc(d.text)}</div>`;
+ if(kind==="quiz") generatorOutput.innerHTML=`<h2>Quiz</h2>`+d.data.questions.map((q,i)=>`<div class="generated-item"><b>${i+1}. ${esc(q.question)}</b><p>${q.options.map((o,j)=>String.fromCharCode(65+j)+". "+esc(o)).join("<br>")}</p><details><summary>Reveal answer</summary><p><b>${esc(q.answer)}</b> — ${esc(q.explanation)}</p></details></div>`).join("");
+ if(kind==="flashcards") generatorOutput.innerHTML=`<h2>Flashcards</h2>`+d.data.cards.map((c,i)=>`<div class="flashcard-preview"><span>${i+1}</span><b>${esc(c.front)}</b><p>${esc(c.back)}</p></div>`).join("");
+});
+closeModal.onclick=()=>generatorModal.classList.add("hidden");
+</script>{% endblock %}

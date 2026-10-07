@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Study Space — TigBor{% endblock %}
+{% block content %}
+<section class="page-head"><div><div class="eyebrow">COLLABORATIVE STUDY</div><h1>Study Space</h1><p>Open rooms for focused peer study.</p></div></section>
+<section class="two-col">
+  <div class="card"><h2>Create a room</h2><div class="stack"><input id="roomName" placeholder="Room name"><input id="roomSubject" placeholder="Subject"><button class="btn btn-gold" id="createRoom">Create room</button></div><p id="roomStatus" class="small"></p></div>
+  <div class="card"><h2>Available rooms</h2>
+    <div class="room-list">{% for room in rooms %}<a class="room" href="{{ url_for('room', room_id=room.id) }}"><div><strong>{{ room.name }}</strong><small>{{ room.subject }} · hosted by {{ room.owner }}</small></div><span>→</span></a>{% else %}<p class="muted">No rooms yet. Create the first one.</p>{% endfor %}</div>
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script>
+createRoom.onclick=async()=>{const r=await fetch("/api/rooms",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:roomName.value,subject:roomSubject.value})});const d=await r.json();if(d.error)roomStatus.textContent=d.error;else location.href="/online/"+d.id;};
+</script>{% endblock %}

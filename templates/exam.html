@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Exam Mode — TigBor{% endblock %}
+{% block content %}
+<section class="page-head" id="examSetup"><div><div class="eyebrow">FOCUS MODE</div><h1>Exam Mode</h1><p>Generate a timed simulation. Once it begins, the study interface stays locked.</p></div></section>
+<section class="card exam-config" id="setupCard">
+  <div class="two-col compact"><div><label>Subject</label><select id="examSubject"><option>Physics</option><option>Chemistry</option><option>Mathematics</option><option>Mixed</option></select></div><div><label>Difficulty</label><select id="examDifficulty"><option>University</option><option>Foundation</option><option>Advanced</option></select></div><div><label>Questions</label><input id="examCount" type="number" min="1" max="30" value="10"></div><div><label>Minutes</label><input id="examMinutes" type="number" min="5" max="180" value="30"></div></div>
+  <button class="btn btn-gold" id="startExam">Generate & start exam</button><p id="examStatus" class="small"></p>
+</section>
+<section class="exam-shell hidden" id="examShell">
+  <div class="exam-bar"><div><span class="eyebrow">EXAM IN PROGRESS</span><strong id="examTitle">Exam</strong></div><div class="timer" id="timer">00:00</div></div>
+  <div id="examQuestions"></div>
+  <button class="btn btn-gold" id="finishExam">Finish exam</button>
+  <div id="markingArea" class="card hidden"></div>
+</section>
+{% endblock %}
+{% block scripts %}<script>
+let examData=null, endTime=0, timerId=null;
+const esc=s=>String(s).replace(/</g,"&lt;");
+function renderExam(){examQuestions.innerHTML=examData.questions.map((q,i)=>`<article class="exam-question"><span>Question ${i+1} · ${q.marks} marks</span><h3>${esc(q.question)}</h3><textarea id="answer-${q.id}" placeholder="Write your answer here..."></textarea><div class="answer-photo"><input type="file" accept="image/*" id="photo-${q.id}"><small>Optional: upload a photo of your written answer.</small></div><button class="btn btn-outline check-btn" data-id="${q.id}">Check this answer</button><div id="feedback-${q.id}" class="feedback"></div></article>`).join("");}
+async function checkAnswer(q){const answer=document.getElementById("answer-"+q.id).value;const f=document.getElementById("photo-"+q.id).files[0];let image=null;if(f){const reader=new FileReader();await new Promise(res=>{reader.onload=()=>{image=reader.result;res()};reader.readAsDataURL(f)});}
+ const box=document.getElementById("feedback-"+q.id);box.textContent="Checking...";
+ const r=await fetch("/api/exam/check",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({question:q.question,answer,image})});const d=await r.json();box.textContent=d.result||d.error||"No feedback.";
+}
+startExam.onclick=async()=>{examStatus.textContent="Generating exam...";const r=await fetch("/api/exam/generate",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subject:examSubject.value,difficulty:examDifficulty.value,count:Number(examCount.value),minutes:Number(examMinutes.value)})});const d=await r.json();if(d.error){examStatus.textContent=d.error;return;}examData=d;setupCard.classList.add("hidden");examSetup.classList.add("hidden");examShell.classList.remove("hidden");examTitle.textContent=d.title;renderExam();endTime=Date.now()+d.minutes*60000;timerId=setInterval(()=>{let left=Math.max(0,endTime-Date.now());timer.textContent=new Date(left).toISOString().substr(14,5);if(left<=0){clearInterval(timerId);finishExam.click();}},250);};
+document.addEventListener("click",e=>{if(e.target.classList.contains("check-btn")){const q=examData.questions.find(x=>x.id==e.target.dataset.id);checkAnswer(q);}});
+finishExam.onclick=()=>{clearInterval(timerId);document.querySelectorAll(".check-btn").forEach(b=>b.disabled=true);document.querySelectorAll("textarea,input").forEach(x=>x.disabled=true);finishExam.disabled=true;markingArea.classList.remove("hidden");markingArea.innerHTML="<h2>Exam submitted</h2><p>Your answers are locked. Use the per-question checker to review your work.</p>";};
+</script>{% endblock %}

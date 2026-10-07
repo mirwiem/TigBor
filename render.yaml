@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: tigbor
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: OPENAI_MODEL
+        value: gpt-5.6
+      - key: PYTHON_VERSION
+        value: 3.13.5

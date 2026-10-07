@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Create account — TigBor{% endblock %}
+{% block content %}
+<section class="auth-wrap"><div class="auth-card">
+  <div class="eyebrow">START STUDYING</div><h1>Create account</h1><p>Your tracker and study spaces are tied to your account.</p>
+  <form method="post" class="stack">
+    <input name="username" placeholder="Username" minlength="3" required>
+    <input name="password" type="password" placeholder="Password" minlength="6" required>
+    <button class="btn btn-gold" type="submit">Create account</button>
+  </form>
+  <p class="small">Already registered? <a href="{{ url_for('login') }}">Sign in</a>.</p>
+</div></section>
+{% endblock %}

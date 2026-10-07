@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Study Tracker — TigBor{% endblock %}
+{% block content %}
+<section class="page-head"><div><div class="eyebrow">PERSONAL STUDY</div><h1>Study tracker</h1><p>Your sessions, your pace, your record.</p></div></section>
+<section class="stats">
+  <div class="stat-card"><span>Total study time</span><strong>{{ total }} min</strong></div>
+  <div class="stat-card"><span>Recent sessions</span><strong>{{ logs|length }}</strong></div>
+  <div class="stat-card"><span>Focus system</span><strong>Personal</strong></div>
+</section>
+<section class="two-col">
+  <div class="card"><h2>Log a session</h2>
+    <div class="stack">
+      <input id="studySubject" placeholder="Subject e.g. Physics">
+      <input id="studyMinutes" type="number" min="1" max="1440" placeholder="Minutes">
+      <input id="studyNote" placeholder="What did you study?">
+      <button class="btn btn-gold" id="logStudy">Save session</button>
+    </div>
+    <p id="studyStatus" class="small"></p>
+  </div>
+  <div class="card"><h2>Recent activity</h2>
+    {% if logs %}
+      <div class="activity-list">
+      {% for log in logs %}<div class="activity"><div><strong>{{ log.subject }}</strong><small>{{ log.note }}</small></div><span>{{ log.minutes }} min</span></div>{% endfor %}
+      </div>
+    {% else %}<p class="muted">No study sessions yet.</p>{% endif %}
+  </div>
+</section>
+{% endblock %}
+{% block scripts %}<script>
+document.getElementById("logStudy")?.addEventListener("click", async () => {
+  const body = {subject: studySubject.value, minutes: Number(studyMinutes.value), note: studyNote.value};
+  const r = await fetch("/api/study/log", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify(body)});
+  const d = await r.json(); studyStatus.textContent = d.error || "Session saved.";
+  if (!d.error) setTimeout(() => location.reload(), 500);
+});
+</script>{% endblock %}

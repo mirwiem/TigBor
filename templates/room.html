@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}{{ room.name }} — TigBor{% endblock %}
+{% block content %}
+<section class="page-head"><div><div class="eyebrow">{{ room.subject }}</div><h1>{{ room.name }}</h1><p>Study room</p></div></section>
+<section class="chat-shell">
+  <div class="chat-messages" id="roomMessages">{% for m in messages %}<div class="message {% if m.user_id == session.get('user_id') %}user{% else %}bot{% endif %}"><span>{{ m.username }}</span><p>{{ m.message }}</p></div>{% else %}<div class="message bot"><span>T</span><p>Room created. Start the study discussion.</p></div>{% endfor %}</div>
+  <form class="chat-input" id="roomForm"><input id="roomInput" placeholder="Share a question, idea, or resource..."><button class="btn btn-gold">Send</button></form>
+</section>
+{% endblock %}
+{% block scripts %}<script>
+roomForm.onsubmit=async e=>{e.preventDefault();const message=roomInput.value.trim();if(!message)return;await fetch("/api/rooms/{{ room.id }}/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message})});location.reload();};
+</script>{% endblock %}

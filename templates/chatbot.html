@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}AI Chatbot — TigBor{% endblock %}
+{% block content %}
+<section class="page-head"><div><div class="eyebrow">OPEN AI ASSISTANT</div><h1>AI Chatbot</h1><p>Ask questions without needing a PDF.</p></div></section>
+<section class="chat-shell">
+  <div class="chat-messages" id="chatMessages"><div class="message bot"><span>T</span><p>Hi. I’m TigBor. What are you studying?</p></div></div>
+  <form class="chat-input" id="chatForm"><input id="chatInput" autocomplete="off" placeholder="Ask anything academic..."><button class="btn btn-gold">Send</button></form>
+</section>
+{% endblock %}
+{% block scripts %}<script>
+const chatHistory = [];
+const chatMessages = document.getElementById("chatMessages");
+function addMsg(who, text){ const d=document.createElement("div"); d.className="message "+who; d.innerHTML=`<span>${who==="bot"?"T":"You"}</span><p>${text.replace(/</g,"&lt;").replace(/\n/g,"<br>")}</p>`; chatMessages.appendChild(d); chatMessages.scrollTop=chatMessages.scrollHeight; }
+chatForm.addEventListener("submit", async e=>{
+ e.preventDefault(); const message=chatInput.value.trim(); if(!message)return;
+ addMsg("user",message); chatInput.value="";
+ const r=await fetch("/api/chatbot",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message,history:chatHistory})});
+ const d=await r.json(); if(d.answer){chatHistory.push({role:"user",content:message},{role:"assistant",content:d.answer});addMsg("bot",d.answer)}else addMsg("bot",d.error||"Something went wrong.");
+});
+</script>{% endblock %}

@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}TigBor{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('index') }}"><span class="brand-mark">T</span><span>TigBor</span></a>
+  <nav>
+    <a href="{{ url_for('chatbot') }}">AI Chat</a>
+    {% if current_user %}
+      <a href="{{ url_for('tutor') }}">AI Tutor</a>
+      <a href="{{ url_for('dashboard') }}">Study</a>
+      <a href="{{ url_for('online') }}">Study Space</a>
+      <a href="{{ url_for('formulas') }}">Formulas</a>
+      <a href="{{ url_for('exam') }}">Exam Mode</a>
+      <a href="{{ url_for('logout') }}" class="nav-muted">Log out</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="nav-muted">Log in</a>
+    {% endif %}
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">◐</button>
+  </nav>
+</header>
+
+<main>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="flash-stack">{% for message in messages %}<div class="flash">{{ message }}</div>{% endfor %}</div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

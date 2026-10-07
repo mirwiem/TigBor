@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}TigBor — Study smarter{% endblock %}
+{% block content %}
+<section class="hero">
+  <div class="hero-copy">
+    <div class="eyebrow">AI-POWERED STUDY PLATFORM</div>
+    <h1>Study with purpose.<br><span>Think with TigBor.</span></h1>
+    <p class="hero-text">A focused academic workspace combining AI tutoring, PDF-powered study tools, exam simulation, formulas, and collaborative study.</p>
+    <div class="hero-actions">
+      {% if current_user %}
+        <a class="btn btn-gold" href="{{ url_for('dashboard') }}">Open TigBor</a>
+      {% else %}
+        <a class="btn btn-gold" href="{{ url_for('register') }}">Create account</a>
+        <a class="btn btn-outline" href="{{ url_for('login') }}">Sign in</a>
+      {% endif %}
+    </div>
+  </div>
+  <div class="hero-panel">
+    <div class="panel-orbit"></div>
+    <div class="hero-card">
+      <span class="status-dot"></span>
+      <small>TIGBOR CORE</small>
+      <strong>Learn before you reveal.</strong>
+      <p>Ask. Attempt. Understand.</p>
+    </div>
+  </div>
+</section>
+
+<section class="feature-grid">
+  <a class="feature-card" href="{{ url_for('chatbot') }}"><span>01</span><h3>AI Chatbot</h3><p>Open-ended academic assistance powered by OpenAI.</p></a>
+  <a class="feature-card" href="{{ url_for('tutor') }}"><span>02</span><h3>AI Tutor</h3><p>Upload a PDF and learn through guided attempts.</p></a>
+  <a class="feature-card" href="{{ url_for('online') }}"><span>03</span><h3>Study Space</h3><p>Rooms where students can study together.</p></a>
+  <a class="feature-card" href="{{ url_for('formulas') }}"><span>04</span><h3>Formula Vault</h3><p>University Physics, Chemistry and Mathematics references.</p></a>
+  <a class="feature-card" href="{{ url_for('exam') }}"><span>05</span><h3>Exam Mode</h3><p>Timed AI-generated exam simulations with marking.</p></a>
+  <a class="feature-card" href="{{ url_for('dashboard') if current_user else url_for('register') }}"><span>06</span><h3>Study Tracker</h3><p>Build a personal record of your study sessions.</p></a>
+</section>
+{% endblock %}
